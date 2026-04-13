@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-music-studio
+    env: python
+    buildCommand: "pip install --upgrade pip setuptools wheel && pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: AUDD_API_TOKEN
+        sync: false
+      - key: XFORMERS_DISABLED
+        value: "1"
+      - key: NO_XFORMERS
+        value: "1"
