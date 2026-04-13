@@ -3,7 +3,7 @@ services:
     name: ai-music-studio
     env: python
     pythonVersion: 3.11
-    buildCommand: "pip install --upgrade pip setuptools wheel && pip install -r requirements.txt"
+    buildCommand: "apt-get update && apt-get install -y libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev pkg-config && pip install --upgrade pip setuptools wheel && pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
     envVars:
       - key: GROQ_API_KEY
