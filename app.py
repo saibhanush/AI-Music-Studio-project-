@@ -1,4 +1,4 @@
-import torch, os, time
+import torch, os, time, sqlite3
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
 from audiocraft.models import MusicGen
@@ -257,15 +257,14 @@ def gallery():
 @app.route('/api/public-stats')
 def public_stats():
     """Public endpoint – used by the showcase page."""
-    import sqlite3
-    DB_PATH = os.path.join('instances', 'studio.db')
     try:
-        con = sqlite3.connect(DB_PATH)
+        con = sqlite3.connect(os.path.join('instances', 'studio.db'))
         tracks = con.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
         users  = con.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         plays  = con.execute("SELECT COALESCE(SUM(plays),0) FROM tracks").fetchone()[0]
         con.close()
-    except Exception:
+    except sqlite3.Error as e:
+        print(f"public_stats DB error: {e}")
         tracks, users, plays = 0, 0, 0
     return jsonify({'tracks_generated': tracks, 'artists': users, 'total_plays': plays})
 
