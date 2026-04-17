@@ -63,7 +63,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'user_id' not in session:
-            return redirect(url_for('home'))
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
 
@@ -218,7 +218,19 @@ Write emotionally expressive, poetic lyrics that fit the description perfectly.
 
 @app.route('/')
 def home():
-    return redirect(url_for('studio')) if 'user_id' in session else render_template('login.html')
+    if 'user_id' in session:
+        return redirect(url_for('studio'))
+    return render_template('showcase.html')
+
+@app.route('/login')
+def login():
+    if 'user_id' in session:
+        return redirect(url_for('studio'))
+    return render_template('login.html')
+
+@app.route('/showcase')
+def showcase():
+    return render_template('showcase.html')
 
 @app.route('/studio')
 @login_required
@@ -241,6 +253,21 @@ def profile():
 @login_required
 def gallery():
     return render_template('gallery.html')
+
+@app.route('/api/public-stats')
+def public_stats():
+    """Public endpoint – used by the showcase page."""
+    import sqlite3
+    DB_PATH = os.path.join('instances', 'studio.db')
+    try:
+        con = sqlite3.connect(DB_PATH)
+        tracks = con.execute("SELECT COUNT(*) FROM tracks").fetchone()[0]
+        users  = con.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        plays  = con.execute("SELECT COALESCE(SUM(plays),0) FROM tracks").fetchone()[0]
+        con.close()
+    except Exception:
+        tracks, users, plays = 0, 0, 0
+    return jsonify({'tracks_generated': tracks, 'artists': users, 'total_plays': plays})
 
 # ══════════════════════════════════════════════════════════════
 #  AUTH
